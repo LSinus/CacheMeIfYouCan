@@ -1,0 +1,5 @@
+*.tar.xz
+linux-6.2
+vmachine/.gdb_history
+vmachine/initramfs.cpio.gz
+vmachine/dump.bin

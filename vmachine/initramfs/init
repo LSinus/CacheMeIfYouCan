@@ -1,0 +1,58 @@
+#!/bin/sh
+
+echo "Init script started"
+
+# Mount necessary filesystems
+mkdir /proc /sys
+mount -t proc none /proc
+mount -t sysfs none /sys
+mount -t devtmpfs devtmpfs /dev
+
+ulimit -n 1000000
+
+# Confirm the limit for debugging
+echo "Max open files: $(ulimit -n)"
+
+insmod /allocdev.ko
+insmod /rdd.ko
+
+echo "Waiting for /dev/allocdev and /dev/rdd..."
+while [ ! -c /dev/allocdev ]; do
+    sleep 0.1
+done
+
+chmod 666 /dev/allocdev
+echo "Permissions set for /dev/allocdev"
+
+chmod 666 /dev/rdd
+echo "Permissions set for /dev/rdd"
+
+while [ ! -e /dev/vport0p1 ]; do sleep 0.1; done
+
+# Create the folder and symlink manually to match standard documentation
+mkdir -p /dev/virtio-ports
+ln -s /dev/vport0p1 /dev/virtio-ports/exploit_data
+chmod 666 /dev/vport0p1
+
+# Set flag permissions
+chown 0:0 /flag
+chmod 400 /flag
+
+# Kernel logging level to console
+echo "7 4 1 7" > /proc/sys/kernel/printk
+
+# Configure network interface (assuming eth0)
+ifconfig eth0 up
+ifconfig eth0 10.0.2.15 netmask 255.255.255.0
+route add default gw 10.0.2.2
+
+exec 0</dev/ttyS0
+exec 1>/dev/ttyS0
+exec 2>/dev/ttyS0
+
+setsid cttyhack setuidgid 000 sh
+
+umount /proc
+umount /sys
+umount /dev
+poweroff -d 0  -f
