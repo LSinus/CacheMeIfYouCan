@@ -19,9 +19,9 @@ taskset -c 1 qemu-system-x86_64 \
     -initrd ./initramfs.cpio.gz \
     -m 10G \
     -enable-kvm \
-    -cpu host \
+    -cpu host,pcid=off \
     -smp 1 \
-    -append "console=ttyS0 oops=panic panic=1 nokaslr quiet hugepagesz=1G hugepages=5" \
+    -append "console=ttyS0 oops=panic panic=1 kpti=1 nokaslr quiet hugepagesz=1G hugepages=5" \
     -serial mon:stdio \
     -nographic \
     -s \
