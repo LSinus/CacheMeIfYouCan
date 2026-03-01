@@ -11,13 +11,16 @@ if [ ! -d "$TARGET_DIR" ]; then
   exit 1
 fi
 
+echo "Setting SUID bit on busybox..."
+sudo chmod 4755 "$TARGET_DIR/bin/busybox"
+
 # Change into the directory
 cd "$TARGET_DIR"
 
 # Compress the directory contents into initramfs.cpio.gz
 echo "Packing contents of '$TARGET_DIR' into initramfs.cpio.gz..."
-find . -print0 | cpio --null -ov --format=newc | gzip -9 > ../initramfs.cpio.gz
-
+#find . -print0 | cpio --null -ov --format=newc | gzip -9 > ../initramfs.cpio.gz
+find . -print0 | cpio --null -ov --format=newc --owner=+0:+0 | gzip -9 > ../initramfs.cpio.gz
 # Return to the parent directory
 cd ..
 

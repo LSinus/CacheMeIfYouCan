@@ -27,4 +27,6 @@ taskset -c 1 qemu-system-x86_64 \
     -s \
     -device virtio-serial \
     -chardev file,id=char0,path=dump.bin \
-    -device virtserialport,chardev=char0,name=exploit_data
+    -device virtserialport,chardev=char0,name=exploit_data \
+    -netdev user,id=net0,hostfwd=tcp::5555-:23 \
+    -device e1000,netdev=net0 \
