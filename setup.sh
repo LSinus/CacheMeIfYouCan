@@ -20,8 +20,9 @@ MOUNT_POINT="/mnt/vmachinedisk"
 
 qemu-img create -f raw vmachine/$DISK 2G
 LOOP=$(sudo losetup -fP --show vmachine/disk.raw)
-sudo mount $LOOP $MOUNT_POINT
+sudo mkdir -p $MOUNT_POINT
 sudo mkfs.ext4 $LOOP
+sudo mount $LOOP $MOUNT_POINT
 sudo umount $MOUNT_POINT
 sudo losetup -d $LOOP
 

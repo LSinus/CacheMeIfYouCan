@@ -18,6 +18,10 @@ MOUNT_POINT="/mnt/vmachinedisk"
 LOOP=$(sudo losetup -fP --show $DISK)
 echo "    Loop device: $LOOP"
 sudo mount $LOOP $MOUNT_POINT
+
+mkdir -p ./initramfs/home
+mkdir -p ./initramfs/home/user
+
 sudo cp -R ./initramfs/* $MOUNT_POINT
 
 sudo mkdir -p $MOUNT_POINT/proc
