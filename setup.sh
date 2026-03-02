@@ -15,7 +15,7 @@ else
 fi
 
 echo "Setting up disk image for virtual machine..."
-DISK="./disk.raw"
+DISK="disk.raw"
 MOUNT_POINT="/mnt/vmachinedisk"
 
 qemu-img create -f raw vmachine/$DISK 2G
