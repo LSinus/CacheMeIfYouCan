@@ -32,6 +32,9 @@ echo "Permissions set for /dev/allocdev"
 chmod 666 /dev/rdd
 echo "Permissions set for /dev/rdd"
 
+chmod 666 /dev/fuse
+chmod 4755 /usr/bin/fusermount3
+
 while [ ! -e /dev/vport0p1 ]; do sleep 0.1; done
 
 # Create the folder and symlink manually to match standard documentation

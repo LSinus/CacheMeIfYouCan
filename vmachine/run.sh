@@ -28,6 +28,7 @@ sudo mkdir -p $MOUNT_POINT/proc
 sudo mkdir -p $MOUNT_POINT/sys
 sudo mkdir -p $MOUNT_POINT/dev
 sudo mkdir -p $MOUNT_POINT/dev/pts
+sudo mkdir -p $MOUNT_POINT/usr/bin
 
 sudo chown -R 1000:1000 $MOUNT_POINT/home/user
 sudo chmod 640 $MOUNT_POINT/etc/shadow
