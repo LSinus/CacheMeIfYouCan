@@ -4,3 +4,4 @@ vmachine/.gdb_history
 vmachine/initramfs.cpio.gz
 vmachine/dump.bin
 vmachine/disk.raw
+vmachine/notes.txt
