@@ -1,0 +1,1 @@
+cmd_/mnt/misto/projects/CacheMeIfYouCan/vmachine/modules/rdd.mod := printf '%s\n'   rdd.o | awk '!x[$$0]++ { print("/mnt/misto/projects/CacheMeIfYouCan/vmachine/modules/"$$0) }' > /mnt/misto/projects/CacheMeIfYouCan/vmachine/modules/rdd.mod

@@ -1,0 +1,1 @@
+cmd_/mnt/misto/projects/CacheMeIfYouCan/vmachine/modules/modules.order := {   echo /mnt/misto/projects/CacheMeIfYouCan/vmachine/modules/allocdev.o;   echo /mnt/misto/projects/CacheMeIfYouCan/vmachine/modules/rdd.o; :; } > /mnt/misto/projects/CacheMeIfYouCan/vmachine/modules/modules.order

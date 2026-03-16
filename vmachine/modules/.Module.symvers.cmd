@@ -1,0 +1,1 @@
+cmd_/mnt/misto/projects/CacheMeIfYouCan/vmachine/modules/Module.symvers :=  scripts/mod/modpost       -o /mnt/misto/projects/CacheMeIfYouCan/vmachine/modules/Module.symvers -n -T /mnt/misto/projects/CacheMeIfYouCan/vmachine/modules/modules.order -i Module.symvers -e 
