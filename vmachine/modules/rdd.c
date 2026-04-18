@@ -22,6 +22,11 @@ typedef struct msg_t {
 #define RDD_ALLOC _IOW(RDD_MAGIC, 1, msg_t)
 #define RDD_FREE  _IOW(RDD_MAGIC, 2, msg_t)
 #define RDD_READ  _IOWR(RDD_MAGIC, 3, msg_t)
+#define RDD_BP    _IOW(RDD_MAGIC, 4, msg_t)
+
+static noinline void rdd_breakpoint(void) {
+	printk("Kernel breakpoint on rdd module\n");
+}
 
 static volatile void *obj;
 
@@ -41,6 +46,9 @@ static long int rdd_ioctl(struct file *file, unsigned int num, long unsigned dat
         ret = copy_to_user((void *)msg.uaddr, (void *)obj, msg.size);
         if(ret) return -1;
         return 0;
+	case RDD_BP:
+		rdd_breakpoint();
+		return 0;
     default:
         return -1;
     }
