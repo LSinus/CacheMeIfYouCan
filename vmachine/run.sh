@@ -3,6 +3,11 @@
 # Stop the script immediately if any command returns an error
 set -e
 
+echo "[+] Compiling modules..."
+cd ./modules
+make
+cd ..
+
 echo "[+] Compiling exploit..."
 make
 
