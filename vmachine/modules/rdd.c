@@ -24,8 +24,9 @@ typedef struct msg_t {
 #define RDD_READ  _IOWR(RDD_MAGIC, 3, msg_t)
 #define RDD_BP    _IOW(RDD_MAGIC, 4, msg_t)
 
-static noinline void rdd_breakpoint(void) {
-	printk("Kernel breakpoint on rdd module\n");
+static noinline void rdd_bp(void) {
+	//printk("Kernel breakpoint on rdd module\n");
+	asm volatile ("");
 }
 
 static volatile void *obj;
@@ -47,7 +48,7 @@ static long int rdd_ioctl(struct file *file, unsigned int num, long unsigned dat
         if(ret) return -1;
         return 0;
 	case RDD_BP:
-		rdd_breakpoint();
+		rdd_bp();
 		return 0;
     default:
         return -1;
