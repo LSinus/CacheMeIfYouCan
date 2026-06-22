@@ -23,6 +23,7 @@ typedef struct msg_t {
 #define RDD_FREE  _IOW(RDD_MAGIC, 2, msg_t)
 #define RDD_READ  _IOWR(RDD_MAGIC, 3, msg_t)
 #define RDD_BP    _IOW(RDD_MAGIC, 4, msg_t)
+#define RDD_WRITE _IOW(RDD_MAGIC, 5, msg_t)
 
 static noinline void rdd_bp(void) {
 	//printk("Kernel breakpoint on rdd module\n");
@@ -50,6 +51,10 @@ static long int rdd_ioctl(struct file *file, unsigned int num, long unsigned dat
 	case RDD_BP:
 		rdd_bp();
 		return 0;
+    case RDD_WRITE:
+        ret = copy_from_user((void *)obj, (void *)msg.uaddr, msg.size);
+        if(ret) return -1;
+        return 0;
     default:
         return -1;
     }

@@ -10,6 +10,8 @@ all:
 	$(MAKE) -C $(KDIR) M=$(MY_PWD) modules
 	cp allocdev.ko ../initramfs
 	cp rdd.ko ../initramfs
+	cp rdd* ../../linux-6.2
+	cp allocdev* ../../linux-6.2
 
 clean:
 	$(MAKE) -C $(KDIR) M=$(MY_PWD) clean
