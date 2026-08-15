@@ -131,7 +131,7 @@ static int add_tc_(int fd, u_int32_t from, u_int32_t to,
 void init_route4()
 {
     sockfd = socket(PF_NETLINK, SOCK_RAW, 0);
-    assert(sockfd != -1);
+    assert(sockfd > 0);
     add_qdisc(sockfd);
     printf("[+][%s] Qdisc added\n", __FILE__);
 }
