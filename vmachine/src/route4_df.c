@@ -178,7 +178,7 @@ void create_dangling_ptr()
 {
     add_tc_(sockfd, 0, 0, 0, NLM_F_EXCL | NLM_F_CREATE, 69);
     add_tc_(sockfd, 1, 2, 0, NLM_F_CREATE, 69);
-    usleep(500 * 1000);
+    usleep(500 * 300);
     printf("[+][%s] Dangling ptr created\n", __FILE__);
 }
 
