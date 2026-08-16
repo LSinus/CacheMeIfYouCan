@@ -10,6 +10,7 @@ mount -t devtmpfs devtmpfs /dev
 mkdir -p /dev/pts
 mount -t devpts devpts /dev/pts
 
+
 ulimit -n 1000000
 echo "Max open files: $(ulimit -n)"
 
@@ -37,6 +38,7 @@ echo "Permissions set for /dev/rdd"
 
 chmod 666 /dev/fuse
 chmod 4755 /usr/bin/fusermount3
+chmod 666 /dev/snd/controlC0
 
 while [ ! -e /dev/vport0p1 ]; do sleep 0.1; done
 

@@ -3,5 +3,6 @@
 
 void flush_tlb();
 
+void setup_namespace();
 
 #endif /*UTIL_H*/
