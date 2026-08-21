@@ -13,7 +13,7 @@ make
 
 echo "[+] Copying to initramfs..."
 cp ./exploit ./initramfs/exploit
-cp ./test    ./initramfs/test
+#cp ./test    ./initramfs/test
 
 echo "[+] Repacking initramfs..."
 ../scripts/pack_initramfs.sh
