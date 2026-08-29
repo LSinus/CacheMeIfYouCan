@@ -10,7 +10,9 @@
 
 MODULE_LICENSE("GPL");
 
-#define BUFSIZE 64
+//#define BUFSIZE 64
+//#define BUFSIZE 192 
+#define BUFSIZE 128
 #define SUCCESS 0
 
 static char *alloc_buf;
@@ -20,6 +22,7 @@ static struct device *alloc_device = NULL;
 
 static int allocdev_open(struct inode *inode, struct file *file) {
    alloc_buf = kmalloc(BUFSIZE, GFP_KERNEL);
+   //printk("Alloc dev allocated %d bytes at: %px\n", BUFSIZE, alloc_buf);
 
    if(!alloc_buf) return -EINVAL;
 

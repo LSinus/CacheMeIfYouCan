@@ -3,21 +3,43 @@
 echo "Init script started"
 
 # Mount necessary filesystems
-mkdir /proc /sys
+mkdir -p /proc /sys /dev
 mount -t proc none /proc
 mount -t sysfs none /sys
-mount -t devtmpfs devtmpfs /dev
-
 
 mkdir -p /dev/pts
 mount -t devpts devpts /dev/pts
-# telnetd -l /bin/sh # Default as root
-telnetd -l /telnet_setup.sh # Default as user
 
 ulimit -n 1000000
-
-# Confirm the limit for debugging
 echo "Max open files: $(ulimit -n)"
+
+ifconfig eth0 up
+ifconfig eth0 10.0.2.15 netmask 255.255.255.0
+route add default gw 10.0.2.2
+
+sleep 0.5
+
+telnetd -F -b 0.0.0.0 -l /bin/login &
+
+
+# -------------------------
+# DLM configfs setup
+# -------------------------
+
+mkdir -p /sys/kernel/config
+mount -t configfs none /sys/kernel/config
+
+mkdir /sys/kernel/config/dlm/cluster
+
+mkdir /sys/kernel/config/dlm/cluster/comms/1
+echo 1 > /sys/kernel/config/dlm/cluster/comms/1/nodeid
+echo 1 > /sys/kernel/config/dlm/cluster/comms/1/local
+
+# Lockspace membership: only node 1
+mkdir /sys/kernel/config/dlm/cluster/spaces/test
+mkdir /sys/kernel/config/dlm/cluster/spaces/test/nodes/1
+echo 1 > /sys/kernel/config/dlm/cluster/spaces/test/nodes/1/nodeid
+
 
 insmod /allocdev.ko
 insmod /rdd.ko
@@ -35,13 +57,67 @@ echo "Permissions set for /dev/rdd"
 
 chmod 666 /dev/fuse
 chmod 4755 /usr/bin/fusermount3
+chmod 666 /dev/snd/controlC0
 
-while [ ! -e /dev/vport0p1 ]; do sleep 0.1; done
 
-# Create the folder and symlink manually to match standard documentation
+while [ ! -e /dev/vport0p1 ]; do
+    sleep 0.1
+done
+
+
+# -------------------------
+# libdlm device symlinks
+# -------------------------
+
+mkdir -p /dev/misc
+
+ln -sf ../dlm-control /dev/misc/dlm-control
+ln -sf ../dlm-monitor /dev/misc/dlm-monitor
+ln -sf ../dlm_plock /dev/misc/dlm_plock
+ln -sf ../dlm_test /dev/misc/dlm_test
+
+chmod 666 /dev/dlm-control
+chmod 666 /dev/dlm-monitor
+chmod 666 /dev/dlm_plock
+
+
+# -------------------------
+# Bootstrap single-node DLM
+# -------------------------
+
+(
+    while [ ! -e /sys/kernel/dlm/test/event_done ]; do
+        sleep 0.1
+    done
+
+    echo "DLM: received lockspace uevent"
+
+    echo 0 > /sys/kernel/dlm/test/event_done
+    echo 1 > /sys/kernel/dlm/test/control
+) &
+
+echo "DLM: starting bootstrap"
+/dlm_bootstrap
+
+echo "DLM: bootstrap finished"
+
+while [ ! -c /dev/dlm_test ]; do
+    sleep 0.1
+done
+
+chmod 666 /dev/dlm_test
+
+ls -l /dev/dlm_test
+
+
+# -------------------------
+# Virtio port
+# -------------------------
+
 mkdir -p /dev/virtio-ports
 ln -s /dev/vport0p1 /dev/virtio-ports/exploit_data
 chmod 666 /dev/vport0p1
+
 
 # Set flag permissions
 chown 0:0 /flag
@@ -50,18 +126,15 @@ chmod 400 /flag
 # Kernel logging level to console
 echo "7 4 1 7" > /proc/sys/kernel/printk
 
-# Configure network interface (assuming eth0)
-ifconfig eth0 up
-ifconfig eth0 10.0.2.15 netmask 255.255.255.0
-route add default gw 10.0.2.2
 
-#exec 0</dev/ttyS0
-#exec 1>/dev/ttyS0
-#exec 2>/dev/ttyS0
-#setsid cttyhack setuidgid 1000 sh
 getty -L 115200 ttyS0 vt100
+
+while true; do
+    sleep 3600
+done
 
 umount /proc
 umount /sys
 umount /dev
-poweroff -d 0  -f
+
+poweroff -d 0 -f
